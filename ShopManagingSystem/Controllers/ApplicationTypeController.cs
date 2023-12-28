@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ShopManagingSystem.Data;
-using ShopManagingSystem.Models;
+using SMS_DataAccess.Data;
+using SMS_Models;
+using SMS_Utility;
 using System.Data;
 
 namespace ShopManagingSystem.Controllers

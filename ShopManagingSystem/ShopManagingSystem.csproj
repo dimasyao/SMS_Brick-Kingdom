@@ -23,4 +23,10 @@
     <Folder Include="wwwroot\Images\Products\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SMS_DataAccess\SMS_DataAccess.csproj" />
+    <ProjectReference Include="..\SMS_Models\SMS_Models.csproj" />
+    <ProjectReference Include="..\SMS_Utility\SMS_Utility.csproj" />
+  </ItemGroup>
+
 </Project>

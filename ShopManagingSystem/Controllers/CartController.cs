@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using ShopManagingSystem.Data;
-using ShopManagingSystem.Models;
-using ShopManagingSystem.Models.ViewModels;
-using ShopManagingSystem.ServiceExtensions;
+using SMS_DataAccess.Data;
+using SMS_Models;
+using SMS_Models.ViewModels;
+using SMS_Utility;
+using SMS_Utility.ServiceExtensions;
 using System.Security.Claims;
 using System.Text;
 

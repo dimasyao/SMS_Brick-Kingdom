@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SqlServer;
-using ShopManagingSystem;
-using ShopManagingSystem.Data;
-using ShopManagingSystem.ServiceExtensions;
+using SMS_DataAccess.Data;
+using SMS_Utility.EmailSending;
 
 var builder = WebApplication.CreateBuilder(args);
 

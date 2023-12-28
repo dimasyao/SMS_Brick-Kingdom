@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShopManagingSystem.Data;
-using ShopManagingSystem.Models;
-using ShopManagingSystem.Models.ViewModels;
-using ShopManagingSystem.ServiceExtensions;
+using SMS_DataAccess.Data;
+using SMS_Models;
+using SMS_Models.ViewModels;
+using SMS_Utility;
+using SMS_Utility.ServiceExtensions;
 using System.Diagnostics;
 
 namespace ShopManagingSystem.Controllers
@@ -56,7 +56,7 @@ namespace ShopManagingSystem.Controllers
             var shoppingCartList = new List<ShoppingCart>();
 
             if (HttpContext.Session.Get<IEnumerable<ShoppingCart>>(WebConstant.SessionCart) != null &&
-                HttpContext.Session.Get<IEnumerable<ShoppingCart>>(WebConstant.SessionCart).Count() > 0)
+                HttpContext.Session.Get<IEnumerable<ShoppingCart>>(WebConstant.SessionCart).Any())
             {
                 shoppingCartList = HttpContext.Session.Get<List<ShoppingCart>>(WebConstant.SessionCart);
             }

@@ -19,7 +19,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
-using ShopManagingSystem.Models;
+using SMS_Models;
+using SMS_Utility;
 
 namespace ShopManagingSystem.Areas.Identity.Pages.Account
 {

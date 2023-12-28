@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ShopManagingSystem.Data;
-using ShopManagingSystem.Models;
-using ShopManagingSystem.Models.ViewModels;
+using SMS_DataAccess.Data;
+using SMS_Models;
+using SMS_Models.ViewModels;
+using SMS_Utility;
 
 namespace ShopManagingSystem.Controllers
 {
@@ -143,6 +144,7 @@ namespace ShopManagingSystem.Controllers
                 Text = x.Name,
                 Value = x.Id.ToString()
             });
+
             productVM.ApplicationTypeSelectList = _database.ApplicationTypes.Select(x => new SelectListItem
             {
                 Text = x.Name,

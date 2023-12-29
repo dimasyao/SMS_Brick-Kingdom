@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Repository;
+using SMS_DataAccess.Repository.IRepository;
 using SMS_Utility.EmailSending;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,11 +19,16 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(buil
     })
     .AddControllersWithViews();
 
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IApplicationTypeRepository, ApplicationTypeRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 builder.Services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 
 var app = builder.Build();
 

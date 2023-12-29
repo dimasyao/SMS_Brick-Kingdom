@@ -5,7 +5,7 @@
     <div class="card bg-write rounded shadow-sm" style="border:3px solid #222">
         <div class="card-body px=3 pt-3 pb-1 row">
             <div class="col-7"><label class="float-left">@Model.Name</label></div>
-            <div class="col-5 text-end"><label class="float-rigth"><span class="text-info h5">@Model.Price.ToString("c", new System.Globalization.CultureInfo("en-US"))</span></label></div>
+            <div class="col-5 text-md-right"><label class="float-rigth"><span class="text-info h5">@Model.Price.ToString("c", new System.Globalization.CultureInfo("en-US"))</span></label></div>
         </div>
         <img class="card-img-top img-fluid mx-auto d-block mb-3 w-50" src="@WebConstant.ImagePath/@Model.Image" alt="@Model.Name" />
         <div class="card-body p-1 px-3 row">

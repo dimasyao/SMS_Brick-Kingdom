@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Models.ViewModels;
 using SMS_Utility;
@@ -12,17 +13,17 @@ namespace ShopManagingSystem.Controllers
     [Authorize(Roles = WebConstant.AdminRole)]
     public class ProductController : Controller
     {
-        private readonly AppDbContext _database;
+        private readonly IProductRepository _productRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        public ProductController(AppDbContext database, IWebHostEnvironment webHostEnvironment) 
+        public ProductController(IProductRepository productRepository, IWebHostEnvironment webHostEnvironment) 
         {
-            _database = database;
+            _productRepository = productRepository;
             _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<Product> products = _database.Products.Include(x => x.Category).Include(x => x.ApplicationType);
+            IEnumerable<Product> products = _productRepository.GetAll(includeProperties: "Category,ApplicationType");
 
             return View(products);
         }
@@ -33,16 +34,8 @@ namespace ShopManagingSystem.Controllers
             ProductVM productVM = new ProductVM()
             {
                 Product = new Product(),
-                CategorySelectList = _database.Categories.Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                }),
-                ApplicationTypeSelectList = _database.ApplicationTypes.Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                })
+                CategorySelectList = _productRepository.GetAllDropDownList(WebConstant.CategoryName),
+                ApplicationTypeSelectList = _productRepository.GetAllDropDownList(WebConstant.ApplicationTypeName)
             };
 
             if (id == null)
@@ -51,7 +44,7 @@ namespace ShopManagingSystem.Controllers
             }
             else
             {
-                productVM.Product = _database.Products.Find(id);
+                productVM.Product = _productRepository.Find(id.GetValueOrDefault());
                 if (productVM.Product == null)
                 {
                     return NotFound();
@@ -66,17 +59,8 @@ namespace ShopManagingSystem.Controllers
         {
             if (productVM.Product.Name != "")
             {
-                productVM.CategorySelectList = _database.Categories.Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                });
-                productVM.ApplicationTypeSelectList = _database.ApplicationTypes.Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                });
-
+                productVM.CategorySelectList = _productRepository.GetAllDropDownList(WebConstant.CategoryName);
+                productVM.ApplicationTypeSelectList = _productRepository.GetAllDropDownList(WebConstant.ApplicationTypeName);
 
                 var files = HttpContext.Request.Form.Files;
                 string webRootPath = _webHostEnvironment.WebRootPath;
@@ -94,11 +78,11 @@ namespace ShopManagingSystem.Controllers
 
                     productVM.Product.Image = fileName + extension;
 
-                    _database.Products.Add(productVM.Product);
+                    _productRepository.Add(productVM.Product);
                 }
                 else
                 {
-                    var productFromDb = _database.Products.AsNoTracking().FirstOrDefault(x => x.Id == productVM.Product.Id);
+                    var productFromDb = _productRepository.FirstOrDefault(x => x.Id == productVM.Product.Id, isTraking: false);
 
                     if (files.Count > 0)
                     {
@@ -132,24 +116,15 @@ namespace ShopManagingSystem.Controllers
                         }
                     }
 
-                    _database.Products.Update(productVM.Product);
+                    _productRepository.Update(productVM.Product);
                 }
 
-                _database.SaveChanges();
+                _productRepository.Save();
                 return RedirectToAction("Index");
             }
 
-            productVM.CategorySelectList = _database.Categories.Select(x => new SelectListItem
-            {
-                Text = x.Name,
-                Value = x.Id.ToString()
-            });
-
-            productVM.ApplicationTypeSelectList = _database.ApplicationTypes.Select(x => new SelectListItem
-            {
-                Text = x.Name,
-                Value = x.Id.ToString()
-            });
+            productVM.CategorySelectList = _productRepository.GetAllDropDownList(WebConstant.CategoryName);
+            productVM.ApplicationTypeSelectList = _productRepository.GetAllDropDownList(WebConstant.ApplicationTypeName);
 
             return View(productVM);
         }
@@ -162,7 +137,7 @@ namespace ShopManagingSystem.Controllers
                 return NotFound();
             }
 
-            var product = _database.Products.Include(x => x.Category).Include(x => x.ApplicationType).FirstOrDefault(x => x.Id == id);
+            var product = _productRepository.FirstOrDefault(x => x.Id == id, includeProperties: "Category,ApplicationType");
 
             if (product == null)
             {
@@ -177,7 +152,7 @@ namespace ShopManagingSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeletePost(int? id)
         {
-            var product = _database.Products.Find(id);
+            var product = _productRepository.Find(id.GetValueOrDefault());
 
             if (product == null)
             {
@@ -193,8 +168,8 @@ namespace ShopManagingSystem.Controllers
                 System.IO.File.Delete(oldFilePath);
             }
 
-            _database.Products.Remove(product);
-            _database.SaveChanges();
+            _productRepository.Remove(product);
+            _productRepository.Save();
             return RedirectToAction("Index");
         }
 

@@ -13,5 +13,9 @@
         public const string CustomerRole = "Customer";
 
         public static string[] Roles { get; } = { "Admin", "Customer" };
+
+        public const string CategoryName = "Category";
+
+        public const string ApplicationTypeName = "ApplicationType";
     }
 }

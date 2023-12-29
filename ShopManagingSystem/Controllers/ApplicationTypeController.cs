@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Utility;
 using System.Data;
@@ -10,16 +11,16 @@ namespace ShopManagingSystem.Controllers
     [Authorize(Roles = WebConstant.AdminRole)]
     public class ApplicationTypeController : Controller
     {
-        private readonly AppDbContext _database;
+        private readonly IApplicationTypeRepository _applicationTypeRepository;
 
-        public ApplicationTypeController(AppDbContext database) 
+        public ApplicationTypeController(IApplicationTypeRepository applicationTypeRepository) 
         {
-            _database = database;
+            _applicationTypeRepository = applicationTypeRepository;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<ApplicationType> applicationTypes = _database.ApplicationTypes;
+            IEnumerable<ApplicationType> applicationTypes = _applicationTypeRepository.GetAll();
             return View(applicationTypes);
         }
 
@@ -34,8 +35,8 @@ namespace ShopManagingSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(ApplicationType applicationType)
         {
-            _database.ApplicationTypes.Add(applicationType);
-            _database.SaveChanges();
+            _applicationTypeRepository.Add(applicationType);
+            _applicationTypeRepository.Save();
             return RedirectToAction("Index");
         }
 
@@ -47,7 +48,7 @@ namespace ShopManagingSystem.Controllers
                 return NotFound();
             }
 
-            var category = _database.ApplicationTypes.Find(id);
+            var category = _applicationTypeRepository.Find(id.GetValueOrDefault());
 
             if (category == null)
             {
@@ -64,8 +65,8 @@ namespace ShopManagingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                _database.ApplicationTypes.Update(applicationType);
-                _database.SaveChanges();
+                _applicationTypeRepository.Update(applicationType);
+                _applicationTypeRepository.Save();
                 return RedirectToAction("Index");
             }
             return View(applicationType);
@@ -79,7 +80,7 @@ namespace ShopManagingSystem.Controllers
                 return NotFound();
             }
 
-            var category = _database.ApplicationTypes.Find(id);
+            var category = _applicationTypeRepository.Find(id.GetValueOrDefault());
 
             if (category == null)
             {
@@ -94,13 +95,13 @@ namespace ShopManagingSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int? id)
         {
-            var category = _database.ApplicationTypes.Find(id);
+            var category = _applicationTypeRepository.Find(id.GetValueOrDefault());
 
             if (category == null)
                 return NotFound();
 
-            _database.ApplicationTypes.Remove(category);
-            _database.SaveChanges();
+            _applicationTypeRepository.Remove(category);
+            _applicationTypeRepository.Save();
             return RedirectToAction("Index");
         }
 

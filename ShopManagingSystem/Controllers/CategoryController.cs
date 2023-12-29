@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Utility;
 using System.Data;
@@ -10,16 +11,16 @@ namespace ShopManagingSystem.Controllers
     [Authorize(Roles = WebConstant.AdminRole)]
     public class CategoryController : Controller
     {
-        private readonly AppDbContext _database;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public CategoryController(AppDbContext database)
+        public CategoryController(ICategoryRepository categoryRepository)
         {
-            _database = database;
+            _categoryRepository = categoryRepository;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<Category> categories = _database.Categories;
+            IEnumerable<Category> categories = _categoryRepository.GetAll();
             return View(categories);
         }
 
@@ -36,8 +37,8 @@ namespace ShopManagingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                _database.Categories.Add(category);
-                _database.SaveChanges();
+                _categoryRepository.Add(category);
+                _categoryRepository.Save();
                 return RedirectToAction("Index");
             }
             return View(category);   
@@ -51,7 +52,7 @@ namespace ShopManagingSystem.Controllers
                 return NotFound();
             }
 
-            var category = _database.Categories.Find(id);
+            var category = _categoryRepository.Find(id.GetValueOrDefault());
 
             if (category == null)
             {
@@ -68,8 +69,8 @@ namespace ShopManagingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                _database.Categories.Update(category);
-                _database.SaveChanges();
+                _categoryRepository.Update(category);
+                _categoryRepository.Save();
                 return RedirectToAction("Index");
             }
 
@@ -84,7 +85,7 @@ namespace ShopManagingSystem.Controllers
                 return NotFound();
             }
 
-            var category = _database.Categories.Find(id);
+            var category = _categoryRepository.Find(id.GetValueOrDefault());
 
             if (category == null)
             {
@@ -99,13 +100,13 @@ namespace ShopManagingSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int? id)
         {
-            var category = _database.Categories.Find(id);
+            var category = _categoryRepository.Find(id.GetValueOrDefault());
 
             if (category == null)
                 return NotFound();
 
-            _database.Categories.Remove(category);
-            _database.SaveChanges();
+            _categoryRepository.Remove(category);
+            _categoryRepository.Save();
 
             return RedirectToAction("Index");
         }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Models.ViewModels;
 using SMS_Utility;
@@ -12,20 +13,22 @@ namespace ShopManagingSystem.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly AppDbContext _database;
+        private readonly IProductRepository _productRepository;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public HomeController(ILogger<HomeController> logger, AppDbContext database)
+        public HomeController(ILogger<HomeController> logger, IProductRepository productRepository, ICategoryRepository categoryRepository)
         {
             _logger = logger;
-            _database = database;
+            _productRepository = productRepository;
+            _categoryRepository = categoryRepository;
         }
 
         public IActionResult Index()
         {
             HomeVm homeVm = new HomeVm()
             {
-                Products = _database.Products.Include(x => x.Category).Include(x => x.ApplicationType),
-                Categories = _database.Categories
+                Products = _productRepository.GetAll(includeProperties: "Category,ApplicationType"),
+                Categories = _categoryRepository.GetAll()
             };
 
             return View(homeVm);
@@ -43,7 +46,7 @@ namespace ShopManagingSystem.Controllers
 
             var detailsVM = new DetailsVM()
             {
-                Product = _database.Products.Include(x => x.Category).Include(x => x.ApplicationType).FirstOrDefault(x => x.Id == id),
+                Product = _productRepository.FirstOrDefault(x => x.Id == id, includeProperties: "Category,ApplicationType"),
                 ExistsInCart = shoppingCartList.Select(x => x.ProductId).Contains(id)
             };
             

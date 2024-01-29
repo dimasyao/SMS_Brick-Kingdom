@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Repository;
+using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Models.ViewModels;
 using SMS_Utility;
@@ -14,18 +16,30 @@ namespace ShopManagingSystem.Controllers
     [Authorize]
     public class CartController : Controller
     {
-        private readonly AppDbContext _database;
+        private readonly IProductRepository _productRepository;
+        private readonly IApplicationUserRepository _applicationUserRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IEmailSender _emailSender;
-
+        private readonly IInquiryHeaderRepository _inquiryHeaderRepository;
+        private readonly IInquiryDetailRepository _inquiryDetailRepository;
+        
         [BindProperty]
         public ProductUserVM ProductUserVM { get; set; }
 
-        public CartController(AppDbContext database, IWebHostEnvironment webHostEnvironment, IEmailSender emailSender)
+        public CartController(IWebHostEnvironment webHostEnvironment, 
+            IEmailSender emailSender,
+            IProductRepository productRepository,
+            IApplicationUserRepository applicationUserRepository,
+            IInquiryHeaderRepository inquiryHeaderRepository,
+            IInquiryDetailRepository inquiryDetailRepository
+            )
         {
-            _database = database;
             _webHostEnvironment = webHostEnvironment;
             _emailSender = emailSender;
+            _productRepository = productRepository;
+            _applicationUserRepository = applicationUserRepository;
+            _inquiryHeaderRepository = inquiryHeaderRepository;
+            _inquiryDetailRepository = inquiryDetailRepository;
         }
 
         public IActionResult Index()
@@ -40,7 +54,7 @@ namespace ShopManagingSystem.Controllers
 
             List<int> prodInCart = shoppingCartList.Select(x => x.ProductId).ToList();
 
-            IEnumerable<Product> prodList = _database.Products.Where(x => prodInCart.Contains(x.Id));
+            IEnumerable<Product> prodList = _productRepository.GetAll(x => prodInCart.Contains(x.Id));
 
             return View(prodList);
         }
@@ -69,11 +83,11 @@ namespace ShopManagingSystem.Controllers
 
             List<int> prodInCart = shoppingCartList.Select(x => x.ProductId).ToList();
 
-            IEnumerable<Product> prodList = _database.Products.Where(x => prodInCart.Contains(x.Id));
+            IEnumerable<Product> prodList = _productRepository.GetAll(x => prodInCart.Contains(x.Id));
 
             ProductUserVM = new ProductUserVM()
             {
-                ApplicationUser = _database.ApplicationUsers.FirstOrDefault(x => x.Id == claim.Value),
+                ApplicationUser = _applicationUserRepository.FirstOrDefault(x => x.Id == claim.Value),
                 ProductList = prodList.ToList(),
             };
 
@@ -101,6 +115,9 @@ namespace ShopManagingSystem.Controllers
         [ActionName("Summary")]
         public async Task<IActionResult> SummaryPost(ProductUserVM productUserVM)
         {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
             var PathToTemplate = _webHostEnvironment.WebRootPath + Path.DirectorySeparatorChar.ToString() + "Templates" + Path.DirectorySeparatorChar.ToString() + "Inquiry.html";
             var subject = "New Inquiry";
             var htmlBody = "";
@@ -123,6 +140,30 @@ namespace ShopManagingSystem.Controllers
                 productListSB.ToString());
 
             await _emailSender.SendEmailAsync(WebConstant.AdminEmail, subject, messageBody);
+
+            var inquiryHeader = new InquiryHeader()
+            {
+                ApplicationUserId = claim.Value,
+                FullName = productUserVM.ApplicationUser.FullName,
+                Email = productUserVM.ApplicationUser.Email,
+                PhoneNumber = productUserVM.ApplicationUser.PhoneNumber,
+                IquiryDate = DateTime.Now
+            };
+
+            _inquiryHeaderRepository.Add(inquiryHeader);
+            _inquiryHeaderRepository.Save();
+
+            foreach (var product in productUserVM.ProductList)
+            {
+                var inquiryDetail = new InquiryDetail()
+                {
+                    InquiryHeaderId = inquiryHeader.Id,
+                    ProductId = product.Id
+                };
+
+                _inquiryDetailRepository.Add(inquiryDetail);
+            }
+            _inquiryDetailRepository.Save();
 
             return RedirectToAction(nameof(InquiryConfirmation));
         }

@@ -18,5 +18,9 @@ namespace SMS_DataAccess.Data
         public DbSet<Product> Products { get; set; }
 
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+
+        public DbSet<InquiryHeader> InquiryHeaders { get; set; }
+
+        public DbSet<InquiryDetail> InquiryDetails { get; set; }
     }
 }

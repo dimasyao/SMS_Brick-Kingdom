@@ -18,7 +18,7 @@ namespace SMS_Models
         [ForeignKey("ApplicationUserId")]
         public ApplicationUser ApplicationUser { get; set; }
 
-        public DateTime IquiryDate { get; set; }
+        public DateTime InquiryDate { get; set; }
 
         [Required]
         public string PhoneNumber { get; set; }

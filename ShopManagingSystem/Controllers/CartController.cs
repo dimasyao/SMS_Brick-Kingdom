@@ -147,7 +147,7 @@ namespace ShopManagingSystem.Controllers
                 FullName = productUserVM.ApplicationUser.FullName,
                 Email = productUserVM.ApplicationUser.Email,
                 PhoneNumber = productUserVM.ApplicationUser.PhoneNumber,
-                IquiryDate = DateTime.Now
+                InquiryDate = DateTime.Now
             };
 
             _inquiryHeaderRepository.Add(inquiryHeader);

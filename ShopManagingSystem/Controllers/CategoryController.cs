@@ -39,8 +39,11 @@ namespace ShopManagingSystem.Controllers
             {
                 _categoryRepository.Add(category);
                 _categoryRepository.Save();
+                TempData[NotificationConstant.Success] = "Category created successfully!";
                 return RedirectToAction("Index");
             }
+
+            TempData[NotificationConstant.Error] = "Error while creating new category!";
             return View(category);   
         }
 

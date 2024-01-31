@@ -26,6 +26,8 @@ namespace SMS_DataAccess.Repository.IRepository
 
         void Remove(T entity);
 
+        void Remove(IEnumerable<T> entities);
+
         void Save();
     }
 }

@@ -6,6 +6,8 @@
 
         public const string SessionCart = "ShoppingCartSessions";
 
+        public const string SessionInquiryId = "InquirySessions";
+
         public const string AdminRole = "Admin";
 
         public const string AdminEmail = "shop.manager0711@gmail.com";

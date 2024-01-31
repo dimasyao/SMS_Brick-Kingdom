@@ -91,6 +91,11 @@ namespace SMS_DataAccess.Repository
             _dbSet.Remove(entity);
         }
 
+        public void Remove(IEnumerable<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
+
         public void Save()
         {
             _database.SaveChanges();

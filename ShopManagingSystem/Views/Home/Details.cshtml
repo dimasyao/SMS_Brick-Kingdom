@@ -28,6 +28,23 @@
                                         <span class="badge p-3 border" style="background-color:azure; color:black">@Model.Product.ApplicationType.Name</span>
                                         <h3 class="text-success"></h3>
                                         <p class="text-secondary">@Html.Raw(Model.Product.Description)</p>
+                                        @if (User.IsInRole(WebConstant.AdminRole))
+                                        {
+                                            <div class="col-12">
+                                                Count:
+                                            </div>
+                                            <div class="col-12">
+                                                @if (Model.ExistsInCart)
+                                                {
+                                                    <input asp-for="@Model.Product.TempCount" disabled class="form-control">
+                                                }
+                                                else
+                                                {
+                                                    <input asp-for="@Model.Product.TempCount" class="form-control">
+                                                }
+                                            </div>
+                                            <span asp-validation-for="@Model.Product.TempCount" class="text-danger"></span>
+                                        }
                                     </div>
                                 </div>
                             </div>

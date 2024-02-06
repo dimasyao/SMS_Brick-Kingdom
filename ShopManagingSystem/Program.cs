@@ -25,6 +25,8 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IInquiryHeaderRepository, InquiryHeaderRepository>();
 builder.Services.AddScoped<IInquiryDetailRepository, InquiryDetailRepository>();
 builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
+builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
 
 
 builder.Services.AddDefaultIdentity<IdentityUser>()

@@ -1,4 +1,4 @@
-﻿
+﻿@using SMS_Utility
 @model SMS_Models.ViewModels.ProductUserVM
 
 <h1>Summary</h1>
@@ -31,7 +31,7 @@
                                         <label>Name</label>
                                     </div>
                                     <div class="col-9">
-                                        <input type="text" asp-for="ApplicationUser.FullName" class="form-control" />
+                                        <input type="text" asp-for="ApplicationUser.FullName" required class="form-control" />
                                         <span asp-validation-for="ApplicationUser.FullName" class="text-danger"></span>
                                     </div>
                                 </div>
@@ -40,7 +40,7 @@
                                         <label>Phone</label>
                                     </div>
                                     <div class="col-9">
-                                        <input type="text" asp-for="ApplicationUser.PhoneNumber" class="form-control" />
+                                        <input type="text" asp-for="ApplicationUser.PhoneNumber" required class="form-control" />
                                         <span asp-validation-for="ApplicationUser.PhoneNumber" class="text-danger"></span>
                                     </div>
                                 </div>
@@ -49,10 +49,49 @@
                                         <label>Email</label>
                                     </div>
                                     <div class="col-9">
-                                        <input type="text" asp-for="ApplicationUser.Email" class="form-control" />
+                                        <input type="text" asp-for="ApplicationUser.Email" required class="form-control" />
                                         <span asp-validation-for="ApplicationUser.Email" class="text-danger"></span>
                                     </div>
                                 </div>
+                                @if (User.IsInRole(WebConstant.AdminRole))
+                                {
+                                    <div class="row my-1">
+                                        <div class="col-3">
+                                            <label>Street Adress</label>
+                                        </div>
+                                        <div class="col-9">
+                                            <input type="text" asp-for="ApplicationUser.StreetAdress" class="form-control" />
+                                            <span asp-validation-for="ApplicationUser.StreetAdress" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1">
+                                        <div class="col-3">
+                                            <label>City</label>
+                                        </div>
+                                        <div class="col-9">
+                                            <input type="text" asp-for="ApplicationUser.City" class="form-control" />
+                                            <span asp-validation-for="ApplicationUser.City" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1">
+                                        <div class="col-3">
+                                            <label>State</label>
+                                        </div>
+                                        <div class="col-9">
+                                            <input type="text" asp-for="ApplicationUser.State" class="form-control" />
+                                            <span asp-validation-for="ApplicationUser.State" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1">
+                                        <div class="col-3">
+                                            <label>Postal Code</label>
+                                        </div>
+                                        <div class="col-9">
+                                            <input type="text" asp-for="ApplicationUser.PostalCode" class="form-control" />
+                                            <span asp-validation-for="ApplicationUser.PostalCode" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                }
                             </div>
                             <div class="col-12 col-lg-5 row">
                                 <div class="col-12">
@@ -60,15 +99,37 @@
                                         <span class="text-info">Order Summary:</span>
                                     </h4>
                                     <ul class="list-group mb-3">
+                                        @{ var orderTotal = 0f;}
                                         @for (int i = 0; i < Model.ProductList.Count(); i++)
                                         {
                                             <li class="list-group-item d-flex justify-content-between">
                                                 <input type="hidden" asp-for="ProductList[i].Id" />
                                                 <input type="hidden" asp-for="ProductList[i].Name" />
+                                                <input type="hidden" asp-for="ProductList[i].Price" />
+                                                <input type="hidden" asp-for="ProductList[i].TempCount" />
                                                 <div>
                                                     <h6 class="my-0">@Model.ProductList[i].Name</h6>
-                                                    <small class="text-muted">@Model.ProductList[i].Price</small>
+                                                    @if (User.IsInRole(WebConstant.AdminRole))
+                                                    {
+                                                        <small class="text-muted">@Model.ProductList[i].TempCount</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">@Model.ProductList[i].Price.ToString("c", new System.Globalization.CultureInfo("en-US"))</small>
+                                                    }
                                                 </div>
+                                                @if (User.IsInRole(WebConstant.AdminRole))
+                                                {
+                                                    <span class="text-muted">$@((Model.ProductList[i].TempCount * Model.ProductList[i].Price).ToString("c", new System.Globalization.CultureInfo("en-US")))</span>
+                                                }
+                                            </li>
+                                            orderTotal += (float)(Model.ProductList[i].TempCount * Model.ProductList[i].Price);
+                                        }
+                                        @if(User.IsInRole(WebConstant.AdminRole))
+                                        {
+                                            <li class="list-group-item d-flex justify-content-between bg-light">
+                                            <small class="text-info"> Total (USD): </small>
+                                                <strong class="text-info">@orderTotal.ToString("c", new System.Globalization.CultureInfo("en-US"))</strong>
                                             </li>
                                         }
                                     </ul>
@@ -80,7 +141,14 @@
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-12 col-md-5 offset-md-7">
-                            <button type="submit" class="btn btn-primary form-control">Submit Inquiry</button>
+                            @if (User.IsInRole(WebConstant.AdminRole))
+                            {
+                                <button class="btn btn-success form-control" id="submit-button">Submit Order</button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-primary form-control">Submit Inquiry</button>
+                            }
                         </div>
                     </div>
                 </div>

@@ -6,6 +6,11 @@ namespace SMS_Models
 {
     public class Product
     {
+        public Product()
+        {
+            TempCount = 1;
+        }
+
         [Key]
         public int Id { get; set; }
 
@@ -33,5 +38,9 @@ namespace SMS_Models
 
         [ForeignKey("ApplicationTypeId")]
         public virtual ApplicationType ApplicationType { get; set; }
+
+        [NotMapped]
+        [Range(1, 10000)]
+        public int TempCount { get; set; }
     }
 }

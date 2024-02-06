@@ -22,6 +22,8 @@ namespace ShopManagingSystem.Controllers
         private readonly IEmailSender _emailSender;
         private readonly IInquiryHeaderRepository _inquiryHeaderRepository;
         private readonly IInquiryDetailRepository _inquiryDetailRepository;
+        private readonly IOrderHeaderRepository _orderHeaderRepository;
+        private readonly IOrderDetailRepository _orderDetailRepository;
         
         [BindProperty]
         public ProductUserVM ProductUserVM { get; set; }
@@ -31,7 +33,9 @@ namespace ShopManagingSystem.Controllers
             IProductRepository productRepository,
             IApplicationUserRepository applicationUserRepository,
             IInquiryHeaderRepository inquiryHeaderRepository,
-            IInquiryDetailRepository inquiryDetailRepository
+            IInquiryDetailRepository inquiryDetailRepository,
+            IOrderHeaderRepository orderHeaderRepository,
+            IOrderDetailRepository orderDetailRepository
             )
         {
             _webHostEnvironment = webHostEnvironment;
@@ -40,6 +44,8 @@ namespace ShopManagingSystem.Controllers
             _applicationUserRepository = applicationUserRepository;
             _inquiryHeaderRepository = inquiryHeaderRepository;
             _inquiryDetailRepository = inquiryDetailRepository;
+            _orderHeaderRepository = orderHeaderRepository;
+            _orderDetailRepository = orderDetailRepository;
         }
 
         public IActionResult Index()
@@ -53,8 +59,15 @@ namespace ShopManagingSystem.Controllers
             }
 
             List<int> prodInCart = shoppingCartList.Select(x => x.ProductId).ToList();
+            IEnumerable<Product> prodListTemp = _productRepository.GetAll(x => prodInCart.Contains(x.Id));
+            IList<Product> prodList = new List<Product>();
 
-            IEnumerable<Product> prodList = _productRepository.GetAll(x => prodInCart.Contains(x.Id));
+            foreach (var obj in shoppingCartList)
+            {
+                Product prodTemp = prodListTemp.FirstOrDefault(x => x.Id == obj.ProductId);
+                prodTemp.TempCount = obj.Count;
+                prodList.Add(prodTemp);
+            }
 
             return View(prodList);
         }
@@ -62,16 +75,53 @@ namespace ShopManagingSystem.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Index")]
-        public IActionResult IndexPost()
+        public IActionResult IndexPost(IEnumerable<Product> prodList)
         {
+            List<ShoppingCart> shoppingCartList = new List<ShoppingCart>();
+
+            foreach (var prod in prodList)
+            {
+                shoppingCartList.Add(new ShoppingCart()
+                {
+                    ProductId = prod.Id,
+                    Count = prod.TempCount
+                });
+            }
+
+            HttpContext.Session.Set(WebConstant.SessionCart, shoppingCartList);
+
             return RedirectToAction(nameof(Summary));
         }
 
         public IActionResult Summary()
         {
-            var claimIden = (ClaimsIdentity)User.Identity;
-            var claim = claimIden.FindFirst(ClaimTypes.NameIdentifier);
-            //var userId = User.FindFirstValue(ClaimTypes.Name);
+            ApplicationUser applicationUser;
+            
+            if (User.IsInRole(WebConstant.AdminRole))
+            {
+                if(HttpContext.Session.Get<int>(WebConstant.SessionInquiryId) != 0)
+                {
+                    InquiryHeader inquiryHeader = _inquiryHeaderRepository.FirstOrDefault(x => x.Id == (HttpContext.Session.Get<int>(WebConstant.SessionInquiryId)));
+                    applicationUser = new ApplicationUser()
+                    {
+                        Email = inquiryHeader.Email,
+                        FullName = inquiryHeader.FullName,
+                        PhoneNumber = inquiryHeader.PhoneNumber
+                    };
+                }
+                else
+                {
+                    applicationUser = new ApplicationUser();
+                }
+            }
+            else
+            {
+                var claimIden = (ClaimsIdentity)User.Identity;
+                var claim = claimIden.FindFirst(ClaimTypes.NameIdentifier);
+                //var userId = User.FindFirstValue(ClaimTypes.Name);
+
+                applicationUser = _applicationUserRepository.FirstOrDefault(x => x.Id == claim.Value);
+            }
 
             var shoppingCartList = new List<ShoppingCart>();
 
@@ -87,9 +137,15 @@ namespace ShopManagingSystem.Controllers
 
             ProductUserVM = new ProductUserVM()
             {
-                ApplicationUser = _applicationUserRepository.FirstOrDefault(x => x.Id == claim.Value),
-                ProductList = prodList.ToList(),
-            };
+                ApplicationUser = applicationUser,
+            }; 
+
+            foreach (var obj in shoppingCartList)
+            {
+                Product prodTemp = _productRepository.FirstOrDefault(x => x.Id == obj.ProductId);
+                prodTemp.TempCount = obj.Count;
+                ProductUserVM.ProductList.Add(prodTemp);
+            }
 
             return View(ProductUserVM);
         }
@@ -118,60 +174,119 @@ namespace ShopManagingSystem.Controllers
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            var PathToTemplate = _webHostEnvironment.WebRootPath + Path.DirectorySeparatorChar.ToString() + "Templates" + Path.DirectorySeparatorChar.ToString() + "Inquiry.html";
-            var subject = "New Inquiry";
-            var htmlBody = "";
-
-            using (var sr  = new StreamReader(PathToTemplate)) 
+            if (User.IsInRole(WebConstant.AdminRole))
             {
-                htmlBody = sr.ReadToEnd();
-            }
-
-            var productListSB = new StringBuilder();
-            foreach (var product in productUserVM.ProductList)
-            {
-                productListSB.Append($" - Name: {product.Name} <span style='font-size:14px;'> (ID: {product.Id})</span><br />");
-            }
-
-            var messageBody = string.Format(htmlBody,
-                productUserVM.ApplicationUser.FullName,
-                productUserVM.ApplicationUser.Email,
-                productUserVM.ApplicationUser.PhoneNumber,
-                productListSB.ToString());
-
-            await _emailSender.SendEmailAsync(WebConstant.AdminEmail, subject, messageBody);
-
-            var inquiryHeader = new InquiryHeader()
-            {
-                ApplicationUserId = claim.Value,
-                FullName = productUserVM.ApplicationUser.FullName,
-                Email = productUserVM.ApplicationUser.Email,
-                PhoneNumber = productUserVM.ApplicationUser.PhoneNumber,
-                InquiryDate = DateTime.Now
-            };
-
-            _inquiryHeaderRepository.Add(inquiryHeader);
-            _inquiryHeaderRepository.Save();
-
-            foreach (var product in productUserVM.ProductList)
-            {
-                var inquiryDetail = new InquiryDetail()
+                var orderHeader = new OrderHeader()
                 {
-                    InquiryHeaderId = inquiryHeader.Id,
-                    ProductId = product.Id
+                    CreatedByUserId = claim.Value,
+                    FinalOrderTotal = ProductUserVM.ProductList.Sum(x => x.TempCount * x.Price),
+                    City = ProductUserVM.ApplicationUser.City,
+                    StreetAddress = ProductUserVM.ApplicationUser.StreetAdress,
+                    State = ProductUserVM.ApplicationUser.State,
+                    PostalCode = ProductUserVM.ApplicationUser.PostalCode,
+                    FullName = ProductUserVM.ApplicationUser.FullName,
+                    Email = ProductUserVM.ApplicationUser.Email,
+                    PhoneNumber = ProductUserVM.ApplicationUser.PhoneNumber,
+                    OrderDate = DateTime.Now,
+                    OrderStatus = WebConstant.StatusPending
                 };
 
-                _inquiryDetailRepository.Add(inquiryDetail);
+                _orderHeaderRepository.Add(orderHeader);
+                _orderHeaderRepository.Save();
+
+                foreach (var product in productUserVM.ProductList)
+                {
+                    var orderDetail = new OrderDetail()
+                    {
+                        OrderHeaderId = orderHeader.Id,
+                        PricePerOne = product.Price,
+                        Count = product.TempCount,
+                        ProductId = product.Id
+                    };
+                    _orderDetailRepository.Add(orderDetail);
+                }
+                _orderDetailRepository.Save();
+
+                return RedirectToAction(nameof(InquiryConfirmation), new { id = orderHeader.Id });
             }
-            _inquiryDetailRepository.Save();
+            else
+            {
+                var PathToTemplate = _webHostEnvironment.WebRootPath + Path.DirectorySeparatorChar.ToString() + "Templates" + Path.DirectorySeparatorChar.ToString() + "Inquiry.html";
+                var subject = "New Inquiry";
+                var htmlBody = "";
+
+                using (var sr = new StreamReader(PathToTemplate))
+                {
+                    htmlBody = sr.ReadToEnd();
+                }
+
+                var productListSB = new StringBuilder();
+                foreach (var product in productUserVM.ProductList)
+                {
+                    productListSB.Append($" - Name: {product.Name} <span style='font-size:14px;'> (ID: {product.Id})</span><br />");
+                }
+
+                var messageBody = string.Format(htmlBody,
+                    productUserVM.ApplicationUser.FullName,
+                    productUserVM.ApplicationUser.Email,
+                    productUserVM.ApplicationUser.PhoneNumber,
+                    productListSB.ToString());
+
+                await _emailSender.SendEmailAsync(WebConstant.AdminEmail, subject, messageBody);
+
+                var inquiryHeader = new InquiryHeader()
+                {
+                    ApplicationUserId = claim.Value,
+                    FullName = productUserVM.ApplicationUser.FullName,
+                    Email = productUserVM.ApplicationUser.Email,
+                    PhoneNumber = productUserVM.ApplicationUser.PhoneNumber,
+                    InquiryDate = DateTime.Now
+                };
+
+                _inquiryHeaderRepository.Add(inquiryHeader);
+                _inquiryHeaderRepository.Save();
+
+                foreach (var product in productUserVM.ProductList)
+                {
+                    var inquiryDetail = new InquiryDetail()
+                    {
+                        InquiryHeaderId = inquiryHeader.Id,
+                        ProductId = product.Id
+                    };
+
+                    _inquiryDetailRepository.Add(inquiryDetail);
+                }
+                _inquiryDetailRepository.Save();
+            }
 
             return RedirectToAction(nameof(InquiryConfirmation));
         }
 
-        public IActionResult InquiryConfirmation()
+        public IActionResult InquiryConfirmation(int id = 0)
         {
+            var orderHeader = _orderHeaderRepository.FirstOrDefault(x => x.Id == id);
             HttpContext.Session.Clear();
-            return View();
+            return View(orderHeader);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateCart(IEnumerable<Product> prodList)
+        {
+            List<ShoppingCart> shoppingCartList = new List<ShoppingCart>();
+
+            foreach (var prod in prodList)
+            {
+                shoppingCartList.Add(new ShoppingCart()
+                {
+                    ProductId = prod.Id,
+                    Count = prod.TempCount
+                });
+            }
+
+            HttpContext.Session.Set(WebConstant.SessionCart, shoppingCartList);
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -54,7 +54,7 @@ namespace ShopManagingSystem.Controllers
         }
 
         [HttpPost, ActionName("Details")]
-        public IActionResult DetailsPost(int id)
+        public IActionResult DetailsPost(int id, DetailsVM detailsVM)
         {
             var shoppingCartList = new List<ShoppingCart>();
 
@@ -66,7 +66,8 @@ namespace ShopManagingSystem.Controllers
 
             shoppingCartList.Add(new ShoppingCart()
             {
-                ProductId = id
+                ProductId = id,
+                Count = detailsVM.Product.TempCount
             });
 
             HttpContext.Session.Set(WebConstant.SessionCart, shoppingCartList);

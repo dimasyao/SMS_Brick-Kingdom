@@ -22,5 +22,9 @@ namespace SMS_DataAccess.Data
         public DbSet<InquiryHeader> InquiryHeaders { get; set; }
 
         public DbSet<InquiryDetail> InquiryDetails { get; set; }
+
+        public DbSet<OrderHeader> OrderHeaders { get; set; }
+
+        public DbSet<OrderDetail> OrderDetails { get; set; }
     }
 }

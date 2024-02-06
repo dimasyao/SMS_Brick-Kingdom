@@ -8,7 +8,7 @@ using SMS_Utility.ServiceExtensions;
 
 namespace ShopManagingSystem.Controllers
 {
-    [Authorize(WebConstant.AdminRole)]
+    [Authorize(Roles = WebConstant.AdminRole)]
     public class InquiryController : Controller
     {
         private readonly IInquiryDetailRepository _inquiryDetailRepository;

@@ -191,6 +191,8 @@ namespace ShopManagingSystem.Controllers
                     OrderStatus = WebConstant.StatusPending
                 };
 
+                orderHeader.TransactionId = "111";
+
                 _orderHeaderRepository.Add(orderHeader);
                 _orderHeaderRepository.Save();
 

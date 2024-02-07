@@ -120,7 +120,7 @@
                                                 </div>
                                                 @if (User.IsInRole(WebConstant.AdminRole))
                                                 {
-                                                    <span class="text-muted">$@((Model.ProductList[i].TempCount * Model.ProductList[i].Price).ToString("c", new System.Globalization.CultureInfo("en-US")))</span>
+                                                    <span class="text-muted">@((Model.ProductList[i].TempCount * Model.ProductList[i].Price).ToString("c", new System.Globalization.CultureInfo("en-US")))</span>
                                                 }
                                             </li>
                                             orderTotal += (float)(Model.ProductList[i].TempCount * Model.ProductList[i].Price);

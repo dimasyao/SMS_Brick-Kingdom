@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using SMS_DataAccess.Data;
 using SMS_DataAccess.Repository;
 using SMS_DataAccess.Repository.IRepository;
+using SMS_Utility.BrainTreePayment;
+using SMS_Utility.BrainTreePayment.Interface;
 using SMS_Utility.EmailSending;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,8 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(buil
     })
     .AddControllersWithViews();
 
+builder.Services.Configure<BrainTreeSettings>(builder.Configuration.GetSection("BrainTree"));
+builder.Services.AddSingleton<IBrainTreeGate, BrainTreeGate>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IApplicationTypeRepository, ApplicationTypeRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();

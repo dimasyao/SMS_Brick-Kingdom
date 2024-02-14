@@ -36,6 +36,11 @@ builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
 builder.Services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddAuthentication().AddFacebook(options =>
+{
+    options.AppId = "931902961767588";
+    options.AppSecret = "4b6195a0a06918b99603424184e594ce";
+});
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 

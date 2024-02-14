@@ -11,7 +11,7 @@ namespace SMS_Utility.BrainTreePayment
 {
     public class BrainTreeGate : IBrainTreeGate
     {
-        public BrainTreeSettings _settings { get; set; }
+        private BrainTreeSettings _settings { get; set; }
 
         private IBraintreeGateway _braintreeGateway { get; set; }
 
@@ -22,7 +22,8 @@ namespace SMS_Utility.BrainTreePayment
 
         public IBraintreeGateway CreateGateway()
         {
-            return new BraintreeGateway(_settings.Environment, _settings.MerchantID, _settings.PublicKey, _settings.PrivateKey);
+            _braintreeGateway = new BraintreeGateway(_settings.Environment, _settings.MerchantID, _settings.PublicKey, _settings.PrivateKey);
+            return _braintreeGateway;
         }
 
         public IBraintreeGateway GetGateway()

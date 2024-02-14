@@ -30,7 +30,7 @@ namespace SMS_Models
 
         public DateTime PaymentDate { get; set; }
 
-        public string TransactionId { get; set; }
+        public string TransactionId { get; set; } = "";
 
         [Required]
         public string PhoneNumber { get; set; }

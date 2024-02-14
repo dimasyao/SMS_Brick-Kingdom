@@ -104,8 +104,10 @@ namespace ShopManagingSystem.Areas.Identity.Pages.Account
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
 
+            [Required]
             public string FullName { get; set; }
 
+            [Required]
             public string PhoneNumber { get; set; }
         }
 
@@ -169,13 +171,13 @@ namespace ShopManagingSystem.Areas.Identity.Pages.Account
                         if (!User.IsInRole(WebConstant.AdminRole))
                         {
                             await _signInManager.SignInAsync(user, isPersistent: false);
+                            return LocalRedirect(returnUrl);
                         }
                         else
                         {
-                            return RedirectToAction("Index");
+                            TempData[WebConstant.Success] = user.UserName + " has been reistered!";
+                            return RedirectToAction("Index", "Home");
                         }
-
-                        return LocalRedirect(returnUrl);
                     }
                 }
                 foreach (var error in result.Errors)

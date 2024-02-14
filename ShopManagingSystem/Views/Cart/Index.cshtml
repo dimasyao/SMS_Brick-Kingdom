@@ -16,6 +16,7 @@
                                 Shopping Cart
                             </div>
                             <div class="col-6 text-right">
+                                <a asp-action="ClearCart" asp-controller="Cart" class="btn btn-outline-warning btn-sm">Clear cart</a>
                                 <a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Continue Shopping</a>
                             </div>
                         </div>
@@ -87,6 +88,7 @@
                                 {
                                     <div class="col-4 col-lg-2 pt-lg-4" style="font-size:11px;">
                                             <input type="text" asp-for="@Model[i].TempCount" class="FormatException-control">
+                                            <span asp-validation-for="@Model[i].TempCount" class="text-danger"></span>
                                     </div>
                                     <div class="col-3 col-lg-2 pt-lg-4" style="font-size:11px;">
                                             <span style="font-size:17px;">@((Model[i].Price * Model[i].TempCount).ToString("c", new System.Globalization.CultureInfo("en-US")))</span>
@@ -136,4 +138,8 @@
 else
 {
     <p>Please add items to cart.</p>
+}
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
 }

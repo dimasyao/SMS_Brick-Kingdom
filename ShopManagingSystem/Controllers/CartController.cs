@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Braintree;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using SMS_DataAccess.Data;
@@ -7,6 +8,7 @@ using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Models.ViewModels;
 using SMS_Utility;
+using SMS_Utility.BrainTreePayment.Interface;
 using SMS_Utility.ServiceExtensions;
 using System.Security.Claims;
 using System.Text;
@@ -24,12 +26,14 @@ namespace ShopManagingSystem.Controllers
         private readonly IInquiryDetailRepository _inquiryDetailRepository;
         private readonly IOrderHeaderRepository _orderHeaderRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IBrainTreeGate _brainTree;
         
         [BindProperty]
         public ProductUserVM ProductUserVM { get; set; }
 
         public CartController(IWebHostEnvironment webHostEnvironment, 
             IEmailSender emailSender,
+            IBrainTreeGate brainTree,
             IProductRepository productRepository,
             IApplicationUserRepository applicationUserRepository,
             IInquiryHeaderRepository inquiryHeaderRepository,
@@ -40,6 +44,7 @@ namespace ShopManagingSystem.Controllers
         {
             _webHostEnvironment = webHostEnvironment;
             _emailSender = emailSender;
+            _brainTree = brainTree;
             _productRepository = productRepository;
             _applicationUserRepository = applicationUserRepository;
             _inquiryHeaderRepository = inquiryHeaderRepository;
@@ -113,6 +118,11 @@ namespace ShopManagingSystem.Controllers
                 {
                     applicationUser = new ApplicationUser();
                 }
+
+                var gateway = _brainTree.GetGateway();
+                var clientToken = gateway.ClientToken.Generate();
+
+                ViewBag.ClientToken = clientToken;
             }
             else
             {
@@ -166,10 +176,16 @@ namespace ShopManagingSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public IActionResult ClearCart(int id)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index", "Home");
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ActionName("Summary")]
-        public async Task<IActionResult> SummaryPost(ProductUserVM productUserVM)
+        public async Task<IActionResult> SummaryPost(IFormCollection collection, ProductUserVM productUserVM)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
@@ -191,8 +207,6 @@ namespace ShopManagingSystem.Controllers
                     OrderStatus = WebConstant.StatusPending
                 };
 
-                orderHeader.TransactionId = "111";
-
                 _orderHeaderRepository.Add(orderHeader);
                 _orderHeaderRepository.Save();
 
@@ -207,7 +221,35 @@ namespace ShopManagingSystem.Controllers
                     };
                     _orderDetailRepository.Add(orderDetail);
                 }
+
                 _orderDetailRepository.Save();
+
+                string nonceFromTheClient = collection["payment_method_nonce"];
+
+                var request = new TransactionRequest
+                {
+                    Amount = Convert.ToDecimal(orderHeader.FinalOrderTotal),
+                    PaymentMethodNonce = nonceFromTheClient,
+                    OrderId = orderHeader.Id.ToString(),
+                    Options = new TransactionOptionsRequest
+                    {
+                        SubmitForSettlement = true
+                    }
+                };
+
+                var gateway = _brainTree.GetGateway();
+                Result<Transaction> result = gateway.Transaction.Sale(request);
+
+                if (result.Target.ProcessorResponseText == "Approved")
+                {
+                    orderHeader.TransactionId = result.Target.Id;
+                    orderHeader.OrderStatus = WebConstant.StatusApproved;
+                }
+                else
+                {
+                    orderHeader.OrderStatus = WebConstant.StatusCancelled;
+                }
+                _orderHeaderRepository.Save();
 
                 return RedirectToAction(nameof(InquiryConfirmation), new { id = orderHeader.Id });
             }

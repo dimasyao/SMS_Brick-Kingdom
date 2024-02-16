@@ -133,12 +133,6 @@ namespace ShopManagingSystem.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    if (!_roleManager.RoleExistsAsync(WebConstant.AdminRole).GetAwaiter().GetResult())
-                    {
-                        await _roleManager.CreateAsync(new IdentityRole(WebConstant.AdminRole));
-                        await _roleManager.CreateAsync(new IdentityRole(WebConstant.CustomerRole));
-                    }
-    
                     if (User.IsInRole(WebConstant.AdminRole))
                     {
                         await _userManager.AddToRoleAsync(user, WebConstant.AdminRole);

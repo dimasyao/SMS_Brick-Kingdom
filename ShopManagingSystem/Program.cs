@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using ShopManagingSystem.Middleware;
 using SMS_DataAccess.Data;
+using SMS_DataAccess.Initializer;
 using SMS_DataAccess.Repository;
 using SMS_DataAccess.Repository.IRepository;
+using SMS_Models;
 using SMS_Utility.BrainTreePayment;
 using SMS_Utility.BrainTreePayment.Interface;
 using SMS_Utility.EmailSending;
@@ -21,6 +24,11 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(buil
     })
     .AddControllersWithViews();
 
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+
 builder.Services.Configure<BrainTreeSettings>(builder.Configuration.GetSection("BrainTree"));
 builder.Services.AddSingleton<IBrainTreeGate, BrainTreeGate>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -32,10 +40,9 @@ builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
 
+builder.Services.AddSingleton<IDBInitializer, DBInitializer>();
+builder.Services.AddRazorPages();
 
-builder.Services.AddDefaultIdentity<IdentityUser>()
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<AppDbContext>();
 builder.Services.AddAuthentication().AddFacebook(options =>
 {
     options.AppId = "931902961767588";
@@ -43,7 +50,6 @@ builder.Services.AddAuthentication().AddFacebook(options =>
 });
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
-
 
 var app = builder.Build();
 
@@ -62,6 +68,9 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<DBInitializerMiddleware>();
+
 app.UseSession();
 
 app.MapRazorPages();

@@ -38,22 +38,22 @@ namespace ShopManagingSystem.Controllers
                 StatusItems = WebConstant.listStatus.ToList().Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Text = x, Value = x })
             };
 
-            if (string.IsNullOrEmpty(searchName))
+            if (!string.IsNullOrEmpty(searchName))
             {
                 orderListVM.OrderHeaders = orderListVM.OrderHeaders.Where(x => x.FullName.ToLower().Contains(searchName.ToLower()));
             }
 
-            if (string.IsNullOrEmpty(searchEmail))
+            if (!string.IsNullOrEmpty(searchEmail))
             {
                 orderListVM.OrderHeaders = orderListVM.OrderHeaders.Where(x => x.Email.ToLower().Contains(searchEmail.ToLower()));
             }
 
-            if (string.IsNullOrEmpty(searchPhone))
+            if (!string.IsNullOrEmpty(searchPhone))
             {
                 orderListVM.OrderHeaders = orderListVM.OrderHeaders.Where(x => x.PhoneNumber.ToLower().Contains(searchPhone.ToLower()));
             }
 
-            if (string.IsNullOrEmpty(Status) && Status != "--Order Status--")
+            if (!string.IsNullOrEmpty(Status) && Status != "--Order Status--")
             {
                 orderListVM.OrderHeaders = orderListVM.OrderHeaders.Where(x => x.OrderStatus.Contains(Status));
             }

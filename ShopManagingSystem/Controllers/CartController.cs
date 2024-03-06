@@ -1,17 +1,23 @@
-﻿using Braintree;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using Braintree;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using SMS_DataAccess.Data;
-using SMS_DataAccess.Repository;
+using SMS_DataAccess;
 using SMS_DataAccess.Repository.IRepository;
 using SMS_Models;
 using SMS_Models.ViewModels;
 using SMS_Utility;
 using SMS_Utility.BrainTreePayment.Interface;
 using SMS_Utility.ServiceExtensions;
-using System.Security.Claims;
-using System.Text;
 
 namespace ShopManagingSystem.Controllers
 {
@@ -183,7 +189,7 @@ namespace ShopManagingSystem.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         [ActionName("Summary")]
         public async Task<IActionResult> SummaryPost(IFormCollection collection, ProductUserVM productUserVM)
         {
@@ -301,10 +307,12 @@ namespace ShopManagingSystem.Controllers
                     _inquiryDetailRepository.Add(inquiryDetail);
                 }
                 _inquiryDetailRepository.Save();
-            }
 
-            return RedirectToAction(nameof(InquiryConfirmation));
+                TempData[WebConstant.Success] = "Inquiry submitted successfully";
+                return RedirectToAction(nameof(InquiryConfirmation), new { id = inquiryHeader.Id });
+            }
         }
+
 
         public IActionResult InquiryConfirmation(int id = 0)
         {

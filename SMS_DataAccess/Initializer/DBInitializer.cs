@@ -13,7 +13,18 @@ namespace SMS_DataAccess.Initializer
 {
     public class DBInitializer : IDBInitializer
     {
-        public void Initialize(AppDbContext _database, UserManager<IdentityUser> _userManager, RoleManager<IdentityRole> _roleManager)
+        private readonly AppDbContext _database;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
+        public DBInitializer(AppDbContext appDbContext, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        {
+            _database = appDbContext;
+            _userManager = userManager;
+            _roleManager = roleManager;
+        }
+
+        public void Initialize()
         {
             try
             {

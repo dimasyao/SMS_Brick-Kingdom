@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using ShopManagingSystem.Middleware;
 using SMS_DataAccess.Data;
 using SMS_DataAccess.Initializer;
 using SMS_DataAccess.Repository;
@@ -23,7 +22,6 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(buil
         options.Cookie.IsEssential = true;
     })
     .AddControllersWithViews();
-
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
@@ -53,6 +51,8 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 var app = builder.Build();
 
+
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -69,7 +69,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<DBInitializerMiddleware>();
+app.Services.GetRequiredService<IDBInitializer>().Initialize();
 
 app.UseSession();
 

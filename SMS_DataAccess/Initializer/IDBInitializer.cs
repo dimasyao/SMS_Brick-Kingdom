@@ -10,6 +10,6 @@ namespace SMS_DataAccess.Initializer
 {
     public interface IDBInitializer
     {
-        void Initialize(AppDbContext appDbContext, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager);
+        void Initialize();
     }
 }

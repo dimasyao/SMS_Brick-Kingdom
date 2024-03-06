@@ -38,7 +38,7 @@ builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
 
-builder.Services.AddSingleton<IDBInitializer, DBInitializer>();
+builder.Services.AddScoped<IDBInitializer, DBInitializer>();
 builder.Services.AddRazorPages();
 
 builder.Services.AddAuthentication().AddFacebook(options =>
@@ -69,7 +69,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.Services.GetRequiredService<IDBInitializer>().Initialize();
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<IDBInitializer>().Initialize();
+}
 
 app.UseSession();
 

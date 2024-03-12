@@ -148,7 +148,7 @@
                             }
                             else
                             {
-                                <button type="submit" onclick="return validateInput()" asp-action="Summary" class="btn btn-primary form-control">Submit Inquiry</button>
+                                <button onclick="return validateInput()" asp-action="Summary" class="btn btn-primary form-control">Submit Inquiry</button>
                             }
                         </div>
                     </div>  
@@ -170,15 +170,17 @@
             container: '#dropin-container'
         }, function (createErr, instance) {
             form.addEventListener('submit', function () {
-                event.preventDefault();
+                //Add the nonce to the form and submit
                 instance.requestPaymentMethod(function (err, payload) {
+                    // Submit payload.nonce to your server
                     document.querySelector('#nonce').value = payload.nonce;
                     form.submit();
                 });
             });
         });
+    </script>
 
-
+    <script>
         function validateInput() {
             var app_name = document.getElementById("ApplicationUser_FullName").value;
             var app_phone = document.getElementById("ApplicationUser_PhoneNumber").value;

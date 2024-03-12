@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "mssql2": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/SMS-Brick-Kingdom/providers/Microsoft.ServiceLinker/linkers/ConnectionStrings_DE99845FAB",
+      "secretStore": null,
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/sms-brick-kingdom-dbdbserver/databases/SMS_Brick_Kingdom-db",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings"
+    }
+  }
+}
